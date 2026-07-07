@@ -1,0 +1,31 @@
+# --- YouTube audio download ---
+yt-dlp>=2024.8.6
+
+# --- Local transcription (Whisper) ---
+openai-whisper>=20231117
+torch>=2.2.0
+
+# --- Audio processing ---
+pydub>=0.25.1
+ffmpeg-python>=0.2.0
+
+# --- LangChain + Mistral (LCEL pipeline for summarization) ---
+langchain>=0.2.0
+langchain-core>=0.2.0
+langchain-mistralai>=0.1.13
+mistralai>=0.4.2
+
+# --- RAG: vector store + embeddings ---
+chromadb>=0.5.0
+langchain-huggingface>=0.0.3
+sentence-transformers>=3.0.1
+huggingface-hub>=0.24.0
+
+# --- UI ---
+streamlit>=1.36.0
+
+# --- Export ---
+reportlab>=4.2.0
+
+# --- Config / environment variables ---
+python-dotenv>=1.0.1
