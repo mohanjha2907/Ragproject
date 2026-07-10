@@ -9,23 +9,28 @@ torch>=2.2.0
 pydub>=0.25.1
 ffmpeg-python>=0.2.0
 
-# --- LangChain + Mistral (LCEL pipeline for summarization) ---
+# --- LangChain ---
 langchain>=0.2.0
 langchain-core>=0.2.0
+langchain-community>=0.2.0
+langchain-text-splitters>=0.2.0
+langchain-chroma>=0.1.2
+langchain-huggingface>=0.0.3
+
+# --- LLM ---
 langchain-mistralai>=0.1.13
 mistralai>=0.4.2
 
-# --- RAG: vector store + embeddings ---
+# --- RAG ---
 chromadb>=0.5.0
-langchain-huggingface>=0.0.3
 sentence-transformers>=3.0.1
 huggingface-hub>=0.24.0
 
 # --- UI ---
 streamlit>=1.36.0
 
-# --- Export ---
+# --- PDF Export ---
 reportlab>=4.2.0
 
-# --- Config / environment variables ---
+# --- Environment ---
 python-dotenv>=1.0.1
