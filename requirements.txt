@@ -1,5 +1,6 @@
 # --- YouTube audio download ---
 yt-dlp>=2025.1.1
+youtube-transcript-api>=1.2.0
 
 # --- Local transcription (Whisper) ---
 openai-whisper>=20231117

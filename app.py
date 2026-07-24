@@ -3,6 +3,7 @@ import time
 import os
 from dotenv import load_dotenv
 from utils.audio_processor import process_input
+from utils.youtube_transcript import fetch_youtube_transcript
 from core.transcribe import transcribe_all
 from core.summarize import summarize, generate_title
 from core.extract import extract_action_items, extract_key_decisions, extract_questions
@@ -401,23 +402,44 @@ if run_btn:
             with progress_placeholder.container():
                 st.info("⚙️ Pipeline running — see sidebar for live status…")
 
-            update_step("audio", "active")
-            
-            if input_type == "Upload Audio/Video":
-                # Save uploaded file locally to downloads/
+            is_youtube_url = (
+                input_type == "YouTube URL / Path"
+                and (source.startswith("http://") or source.startswith("https://"))
+                and ("youtube.com" in source or "youtu.be" in source)
+            )
+
+            if is_youtube_url:
+                # ── YouTube URL: fetch transcript directly (no audio download) ──
+                update_step("audio", "active")
+                update_step("transcript", "active")
+                with st.spinner("Fetching YouTube transcript…"):
+                    transcript = fetch_youtube_transcript(source)
+                update_step("audio", "done")
+                update_step("transcript", "done")
+
+            elif input_type == "Upload Audio/Video":
+                # ── Uploaded file: save locally then run audio pipeline ──
+                update_step("audio", "active")
                 os.makedirs("downloads", exist_ok=True)
                 source_to_process = os.path.join("downloads", uploaded_file.name)
                 with open(source_to_process, "wb") as f:
                     f.write(uploaded_file.getbuffer())
+                chunks = process_input(source_to_process)
+                update_step("audio", "done")
+
+                update_step("transcript", "active")
+                transcript = transcribe_all(chunks, language)
+                update_step("transcript", "done")
+
             else:
-                source_to_process = source
+                # ── Local file path: run audio pipeline ──
+                update_step("audio", "active")
+                chunks = process_input(source)
+                update_step("audio", "done")
 
-            chunks = process_input(source_to_process)
-            update_step("audio", "done")
-
-            update_step("transcript", "active")
-            transcript = transcribe_all(chunks, language)
-            update_step("transcript", "done")
+                update_step("transcript", "active")
+                transcript = transcribe_all(chunks, language)
+                update_step("transcript", "done")
 
             update_step("title", "active")
             title = generate_title(transcript)
