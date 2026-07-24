@@ -41,6 +41,10 @@ def download_youtube_audio(url: str) -> str:
 
         # Terminal me unnecessary messages mat print karo
         "quiet": True,
+
+        # Bypass HTTP Error 403: Forbidden / rate limiting
+        "nocheckcertificate": True,
+        "no_warnings": True,
     }
 
     # yt_dlp object banao aur diye gaye settings use karo
@@ -48,6 +52,8 @@ def download_youtube_audio(url: str) -> str:
 
         # URL se audio download karo aur video ki information le lo
         info = ydl.extract_info(url, download=True)
+        if info is None:
+            raise Exception("ERROR: unable to download video data from YouTube. YouTube may be blocking requests from this IP address or the URL is invalid.")
 
         # Download hui file ka naam/path nikal lo
         filename = ydl.prepare_filename(info)

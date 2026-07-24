@@ -1,5 +1,6 @@
 import streamlit as st
 import time
+import os
 from dotenv import load_dotenv
 from utils.audio_processor import process_input
 from core.transcribe import transcribe_all
@@ -340,8 +341,15 @@ with st.sidebar:
     st.markdown('<div class="hero-sub">Meeting Intelligence</div>', unsafe_allow_html=True)
     st.markdown("---")
 
-    st.markdown('<span class="badge badge-purple">Input</span>', unsafe_allow_html=True)
-    source = st.text_input("YouTube URL or File Path", placeholder="https://youtube.com/watch?v=... or /path/to/file.mp4")
+    st.markdown('<span class="badge badge-purple">Input Source</span>', unsafe_allow_html=True)
+    input_type = st.selectbox("Select Input Type", ["YouTube URL / Path", "Upload Audio/Video"], index=0, label_visibility="collapsed")
+    
+    source = ""
+    uploaded_file = None
+    if input_type == "YouTube URL / Path":
+        source = st.text_input("YouTube URL or File Path", placeholder="https://youtube.com/watch?v=... or /path/to/file.mp4")
+    else:
+        uploaded_file = st.file_uploader("Upload meeting file", type=["mp3", "wav", "m4a", "mp4", "webm", "ogg", "mov"])
 
     language = st.selectbox("Language", ["english", "hinglish"], index=0)
 
@@ -367,8 +375,17 @@ st.markdown("---")
 
 # ── Run Pipeline ────────────────────────────────────────────────────────────────
 if run_btn:
-    if not source.strip():
-        st.error("Please enter a YouTube URL or file path.")
+    is_valid_input = False
+    if input_type == "YouTube URL / Path" and source.strip():
+        is_valid_input = True
+    elif input_type == "Upload Audio/Video" and uploaded_file is not None:
+        is_valid_input = True
+        
+    if not is_valid_input:
+        if input_type == "YouTube URL / Path":
+            st.error("Please enter a YouTube URL or file path.")
+        else:
+            st.error("Please upload an audio or video file.")
     else:
         st.session_state.pipeline_done = False
         st.session_state.result = None
@@ -385,7 +402,17 @@ if run_btn:
                 st.info("⚙️ Pipeline running — see sidebar for live status…")
 
             update_step("audio", "active")
-            chunks = process_input(source)
+            
+            if input_type == "Upload Audio/Video":
+                # Save uploaded file locally to downloads/
+                os.makedirs("downloads", exist_ok=True)
+                source_to_process = os.path.join("downloads", uploaded_file.name)
+                with open(source_to_process, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+            else:
+                source_to_process = source
+
+            chunks = process_input(source_to_process)
             update_step("audio", "done")
 
             update_step("transcript", "active")
