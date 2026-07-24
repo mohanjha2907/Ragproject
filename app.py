@@ -343,13 +343,26 @@ with st.sidebar:
     st.markdown("---")
 
     st.markdown('<span class="badge badge-purple">Input Source</span>', unsafe_allow_html=True)
-    input_type = st.selectbox("Select Input Type", ["YouTube URL / Path", "Upload Audio/Video"], index=0, label_visibility="collapsed")
+    input_type = st.selectbox("Select Input Type", ["Upload Audio/Video", "YouTube URL / Path"], index=0, label_visibility="collapsed")
     
     source = ""
     uploaded_file = None
     if input_type == "YouTube URL / Path":
-        source = st.text_input("YouTube URL or File Path", placeholder="https://youtube.com/watch?v=... or /path/to/file.mp4")
+        st.markdown("""
+        <div style="background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.25);border-radius:8px;padding:0.6rem 0.75rem;margin-bottom:0.5rem;font-size:0.75rem;color:#dc2626;">
+            ⚠️ <strong>Cloud limitation:</strong> YouTube blocks direct access from cloud servers.
+            YouTube URLs only work when running this app <strong>locally</strong>.
+            Use <strong>Upload Audio/Video</strong> instead for the deployed app.
+        </div>
+        """, unsafe_allow_html=True)
+        source = st.text_input("YouTube URL or File Path", placeholder="https://youtube.com/watch?v=...")
     else:
+        st.markdown("""
+        <div style="background:rgba(5,150,105,0.08);border:1px solid rgba(5,150,105,0.25);border-radius:8px;padding:0.6rem 0.75rem;margin-bottom:0.5rem;font-size:0.75rem;color:#059669;">
+            ✅ <strong>Recommended for cloud:</strong> Upload your meeting recording directly.
+            Supports MP3, WAV, M4A, MP4, WebM, OGG, MOV.
+        </div>
+        """, unsafe_allow_html=True)
         uploaded_file = st.file_uploader("Upload meeting file", type=["mp3", "wav", "m4a", "mp4", "webm", "ogg", "mov"])
 
     language = st.selectbox("Language", ["english", "hinglish"], index=0)
@@ -478,7 +491,19 @@ if run_btn:
             for k in ["audio","transcript","title","summary","extract","rag"]:
                 if st.session_state.pipeline_steps.get(k) == "active":
                     st.session_state.pipeline_steps[k] = "pending"
-            progress_placeholder.error(f"❌ Error: {e}")
+            
+            err_msg = str(e)
+            # Give a friendlier message when YouTube blocks the cloud IP
+            if "cloud provider" in err_msg.lower() or "ip" in err_msg.lower() or "blocked" in err_msg.lower() or "403" in err_msg.lower():
+                progress_placeholder.error(
+                    "❌ **YouTube is blocking this cloud server's IP address.**\n\n"
+                    "This is a YouTube restriction on all cloud platforms (AWS, Google Cloud, etc.) — "
+                    "it cannot be bypassed.\n\n"
+                    "✅ **Solution:** Switch the input source to **Upload Audio/Video** in the sidebar "
+                    "and upload your meeting file directly."
+                )
+            else:
+                progress_placeholder.error(f"❌ Error: {e}")
 
 # ── Results ──────────────────────────────────────────────────────────────────────
 if st.session_state.result:
